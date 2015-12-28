@@ -1,5 +1,7 @@
 package br.com.casadocodigo.loja.conf;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.cache.CacheManager;
@@ -13,18 +15,26 @@ import org.springframework.format.datetime.DateFormatter;
 import org.springframework.format.datetime.DateFormatterRegistrar;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.google.common.cache.CacheBuilder;
 
 import br.com.casadocodigo.loja.controllers.HomeController;
 import br.com.casadocodigo.loja.daos.ProductDAO;
+import br.com.casadocodigo.loja.models.Product;
 import br.com.casadocodigo.loja.models.ShoppingCart;
 import br.com.casadocodigo.loja.utils.FileSaver;
+import br.com.casadocodigo.loja.viewresolver.CustomXMLViewResolver;
+import br.com.casadocodigo.loja.viewresolver.JsonViewResolver;
+import br.com.casadocodigo.loja.viewresolver.ProductRssViewResolver;
 
 @EnableWebMvc
 @ComponentScan(basePackageClasses = { HomeController.class, ProductDAO.class, FileSaver.class, ShoppingCart.class })
@@ -42,6 +52,45 @@ public class AppWebConfiguration {
 		resolver.setSuffix(".jsp");
 		resolver.setExposedContextBeanNames("shoppingCart");
 		return resolver;
+	}
+	
+	/**
+	 * Responsible for register ViewResolvers [HTML/JSON/XML/RSS]
+	 * @param manager
+	 * @return
+	 */
+	@Bean
+	public ViewResolver contentNegotiatingViewResolver(ContentNegotiationManager manager) {
+		//Step 1: Resolver list
+		List<ViewResolver> resolvers = new ArrayList<ViewResolver>();
+		
+		//Step 2: Add resolvers
+		resolvers.add(internalResourceViewResolver()); //view resolver for html
+		resolvers.add(new JsonViewResolver()); // view resolver for json
+		resolvers.add(getMarshallingXmlViewResolver()); // view resolver for xml
+		resolvers.add(new ProductRssViewResolver());
+		
+		//Step 3: Register the resolvers
+		ContentNegotiatingViewResolver resolver = new ContentNegotiatingViewResolver();
+		resolver.setViewResolvers(resolvers);
+		resolver.setContentNegotiationManager(manager);
+		return resolver;
+	}
+	
+	/**
+	 * Resposible for register the classes to be parsed as XML
+	 * @return
+	 */
+	@Bean
+	public CustomXMLViewResolver getMarshallingXmlViewResolver() {
+		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+		marshaller.setClassesToBeBound(Product.class);
+//		XStreamMarshaller marshaller = new XStreamMarshaller();
+//		HashMap<String, Class<?>> keys = new HashMap<String,Class<?>>();
+//		keys.put("product", Product.class);
+//		keys.put("price", Price.class);
+//		marshaller.setAliases(keys);
+		return new CustomXMLViewResolver(marshaller);
 	}
 
 	/**
