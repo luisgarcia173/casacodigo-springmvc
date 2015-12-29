@@ -5,9 +5,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import br.com.casadocodigo.loja.models.Role;
@@ -18,7 +20,10 @@ public class UserDAO implements UserDetailsService {
 
 	@PersistenceContext
 	private EntityManager manager;
-
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String jpql = "select u from User u where u.login = :login";
@@ -30,6 +35,8 @@ public class UserDAO implements UserDetailsService {
 	}
 	
 	public void saveUser(User user) {
+		String password = user.getPassword();
+		user.setPassword(passwordEncoder.encode(password));
 		manager.persist(user);
 	}
 	
