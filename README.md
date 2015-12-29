@@ -21,3 +21,7 @@ eCommerce de livros
 * Upload Foto / SpringMVC MultiPart
 * GuavaCache
 * JacksonJson
+* RSS / JSON / XML
+* Consuming REST natively
+* Spring Security
+* Javax Mail (Builder Pattern)
