@@ -1,9 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
 <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 </head>
@@ -42,55 +43,63 @@
 	</div>
 
 	<div class="row column text-center">
-		<h2>Resumo Compras</h2>
+		<h3>User's Roles</h3>
 		<hr>
 	</div>
-
+	<div class="row">
+		<div class="large-4 columns">
+			<table>
+				<thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th>Nome</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:forEach items="${roles}" var="role">
+						<tr>
+							<%-- <td><a href="${spring:mvcUrl('removeCartProduct').arg(0,item.product.id).build()}"><i class="fa fa-minus-square" style="color: red;"></i></a></td> --%>
+							<td><a href="#"><i class="fa fa-minus-square" style="color: red;"></i></a></td>
+							<td>${role.name}</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+		</div>
+		<hr>
+	</div>
+	
+	<div class="row column text-center">
+		<h3>User's</h3>
+		<hr>
+	</div>
 	<div class="row">
 		<div class="large-12 columns">
 			<table>
 				<thead>
 					<tr>
 						<th>&nbsp;</th>
-						<th>Item</th>
-						<th width="150">Formato</th>
-						<th width="150">Preço</th>
-						<th width="150">Quantidade</th>
-						<th width="150">Total</th>
+						<th>Nome</th>
+						<th>Login</th>
+						<th>Role</th>
 					</tr>
 				</thead>
-				<tfoot>
-					<tr>
-						<td colspan="4"></td>
-						<td># ${cart.quantity}</td>
-						<td>R$ ${cart.total}</td>
-					</tr>
-				</tfoot>
 				<tbody>
-					<c:forEach items="${items}" var="item">
+					<c:forEach items="${users}" var="user">
 						<tr>
 							<%-- <td><a href="${spring:mvcUrl('removeCartProduct').arg(0,item.product.id).build()}"><i class="fa fa-minus-square" style="color: red;"></i></a></td> --%>
 							<td><a href="#"><i class="fa fa-minus-square" style="color: red;"></i></a></td>
-							<td>${item.product.title}</td>
-							<td>${item.bookType}</td>
-							<td>${item.price}</td>
-							<td>${item.quantity}</td>
-							<td>${item.total}</td>
+							<td>${user.name}</td>
+							<td>${user.login}</td>
+							<td>${user.roles[0]}</td>
 						</tr>
 					</c:forEach>
 				</tbody>
 			</table>
 		</div>
+		<hr>
 	</div>
 	
-	<div class="row text-center">
-		<div class="large-12 columns">
-			<form action="${spring:mvcUrl('itemsCheckoutSync').build()}" method="post">
-				<input type="submit" class="medium button" name="checkout" value="Finalizar compra" id="checkout"/>
-			</form>
-		</div>
-	</div>
-
 	<div class="callout large secondary">
 		<div class="row">
 			<div class="large-12 columns">

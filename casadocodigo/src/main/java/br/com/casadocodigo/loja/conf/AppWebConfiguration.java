@@ -2,26 +2,38 @@ package br.com.casadocodigo.loja.conf;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.guava.GuavaCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.core.env.Environment;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.format.datetime.DateFormatterRegistrar;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
@@ -39,8 +51,12 @@ import br.com.casadocodigo.loja.viewresolver.ProductRssViewResolver;
 @EnableWebMvc
 @ComponentScan(basePackageClasses = { HomeController.class, ProductDAO.class, FileSaver.class, ShoppingCart.class })
 @EnableCaching
-public class AppWebConfiguration {
+@PropertySource("classpath:/mail.properties")
+public class AppWebConfiguration extends WebMvcConfigurerAdapter {
 
+	@Autowired
+	private Environment env;
+	
 	/**
 	 * Responsible for register the page suffix, path 
 	 * @return
@@ -152,6 +168,47 @@ public class AppWebConfiguration {
 		GuavaCacheManager cacheManager = new GuavaCacheManager();
 		cacheManager.setCacheBuilder(builder);
 		return cacheManager;
+	}
+	
+	/**
+	 * Responsible for enable the Internationalization
+	 * @return
+	 */
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(new LocaleChangeInterceptor());
+	}
+	@Bean
+	public LocaleResolver localeResolver() {
+		return new CookieLocaleResolver();
+	}
+	
+	/**
+	 * Resposible for redirect unknown url to servlet container (Tomcat), used for static files [css/js/images] 
+	 */
+	@Override
+	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+		configurer.enable();
+	}
+	
+	/**
+	 * Responsible for enable the email sender interface
+	 * @return
+	 */
+	@Bean
+	public MailSender mailSender() {
+		JavaMailSenderImpl javaMailSenderImpl = new JavaMailSenderImpl();
+		javaMailSenderImpl.setHost(env.getProperty("mail.host"));
+		javaMailSenderImpl.setPassword(env.getProperty("mail.password"));
+		javaMailSenderImpl.setPort(Integer.valueOf(env.getProperty("mail.port")));
+		javaMailSenderImpl.setUsername(env.getProperty("mail.username"));
+
+		Properties mailProperties = new Properties();
+		mailProperties.put("mail.smtp.auth", true);
+		mailProperties.put("mail.smtp.starttls.enable", true);
+		
+		javaMailSenderImpl.setJavaMailProperties(mailProperties);
+		return javaMailSenderImpl;
 	}
 
 }

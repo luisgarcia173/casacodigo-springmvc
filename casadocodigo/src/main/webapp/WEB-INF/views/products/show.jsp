@@ -15,13 +15,29 @@
 			<ul class="menu">
 				<li class="menu-text">Catalogo de Livros</li>
 				<li><a href="${spring:mvcUrl('listProducts').build()}">Listar</a></li>
-				<li><a href="${spring:mvcUrl('addProduct').build()}">Cadastrar</a></li>
+				
+				<!-- Logged Admin User -->
+				<security:authorize access="hasRole('ROLE_ADMIN')">
+					<li><a href="${spring:mvcUrl('addProduct').build()}">Cadastrar</a></li>
+				</security:authorize>
+				
 			</ul>
 		</div>
 		<div class="top-bar-right">
 			<ul class="menu">
-				<li><a href="${spring:mvcUrl('showShoppingCart').build()}" rel="nofollow">Seu carrinho (${shoppingCart.quantityDistinctItems})</a></li>
-				<li><a href="#">Logout</a></li>
+
+				<!-- Logged User -->
+				<security:authorize access="isAuthenticated()">
+					<security:authentication property="principal" var="user" />
+					<li><a href="${spring:mvcUrl('login').arg(0,'logout').build()}">Logout (${user.name})</a></li>
+					<li><a href="${spring:mvcUrl('showShoppingCart').build()}" rel="nofollow">Seu carrinho (${shoppingCart.quantityDistinctItems})</a></li>
+				</security:authorize>
+
+				<!-- Anonymous User-->
+				<security:authorize access="!isAuthenticated()">
+					<li><a href="${spring:mvcUrl('login').build()}">Log In</a></li>
+				</security:authorize>
+				
 			</ul>
 		</div>
 	</div>
